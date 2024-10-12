@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Khám Bệnh</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            margin: 50px auto;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .btn-calculate {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-refresh {
+            background-color: #ffc107;
+            color: white;
+        }
+        .btn-exit {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="form-container">
+        <h2 class="text-center text-primary mb-4">Đăng Ký Khám Bệnh</h2>
+        <form id="registrationForm" novalidate>
+            <div class="form-group">
+                <label for="name">Họ Tên:</label>
+                <input type="text" class="form-control" id="name" name="name" required minlength="3" maxlength="50" pattern="^[A-Za-zÀ-ỹ\s]+$" placeholder="Nhập họ tên">
+                <div class="invalid-feedback">Họ tên phải có độ dài từ 3 đến 50 ký tự và chỉ chứa chữ cái.</div>
+            </div>
+            <div class="form-group">
+                <label for="address">Địa Chỉ:</label>
+                <input type="text" class="form-control" id="address" name="address" required minlength="5" maxlength="100" placeholder="Nhập địa chỉ">
+                <div class="invalid-feedback">Địa chỉ phải có độ dài từ 5 đến 100 ký tự.</div>
+            </div>
+            <div class="form-group">
+                <label for="phone">Số Điện Thoại:</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required pattern="^\d{10,15}$" placeholder="Nhập số điện thoại (10-15 chữ số)">
+                <div class="invalid-feedback">Số điện thoại phải bao gồm 10-15 chữ số.</div>
+            </div>
+            <div class="form-group">
+                <label for="cccd">Số CCCD:</label>
+                <input type="text" class="form-control" id="cccd" name="cccd" required pattern="^\d{12}$" placeholder="Nhập số CCCD (12 chữ số)">
+                <div class="invalid-feedback">Số CCCD phải gồm đúng 12 chữ số.</div>
+            </div>
+            <div class="form-group">
+                <label>Giới Tính:</label>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="gender" id="male" value="Nam" required>
+                    <label class="form-check-label" for="male">Nam</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="gender" id="female" value="Nữ">
+                    <label class="form-check-label" for="female">Nữ</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="gender" id="child" value="Trẻ em">
+                    <label class="form-check-label" for="child">Trẻ em</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="gender" id="elder" value="Người cao tuổi">
+                    <label class="form-check-label" for="elder">Người cao tuổi</label>
+                </div>
+                <div class="invalid-feedback d-block">Vui lòng chọn giới tính.</div>
+            </div>
+            <div class="form-group">
+                <label for="age">Tuổi:</label>
+                <input type="number" class="form-control" id="age" name="age" required min="0" max="120" placeholder="Nhập tuổi (0-120)">
+                <div class="invalid-feedback">Tuổi phải nằm trong khoảng 0-120.</div>
+            </div>
+            <div class="form-group">
+                <label for="doctor">Chọn Bác Sĩ:</label>
+                <select class="form-control" id="doctor" name="doctor" required>
+                    <option value="">Chọn bác sĩ</option>
+                    <option>Bác Sĩ 1</option>
+                    <option>Bác Sĩ 2</option>
+                    <option>Bác Sĩ 3</option>
+                </select>
+                <div class="invalid-feedback">Vui lòng chọn bác sĩ.</div>
+            </div>
+            <div class="form-group">
+                <label for="appointment">Thời Gian Khám:</label>
+                <input type="datetime-local" class="form-control" id="appointment" name="appointment" required>
+                <div class="invalid-feedback">Vui lòng chọn thời gian khám.</div>
+            </div>
+            <div class="form-group">
+                <label for="fee">Giá Tiền:</label>
+                <input type="text" class="form-control" id="fee" name="fee" value="VND" readonly>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-calculate" id="payment">Tính Tiền</button>
+                <button type="reset" class="btn btn-refresh">Làm Mới</button>
+                <button type="submit" class="btn btn-primary">Đăng Ký</button>
+                <button type="button" class="btn btn-exit">Thoát</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bootstrap JS and Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Thiết lập giá trị mặc định cho trường appointment
+        const appointmentInput = document.getElementById("appointment");
+        const now = new Date();
+        const tzOffset = now.getTimezoneOffset() * 60000; //offset in milliseconds
+        const localISOTime = (new Date(now - tzOffset)).toISOString().slice(0,16);
+        appointmentInput.value = localISOTime;
+
+        // Tính giá tiền
+        document.getElementById("payment").addEventListener("click", function() {
+            const form = document.getElementById("registrationForm");
+            if (form.checkValidity()) {
+                const gender = document.querySelector('input[name="gender"]:checked').value;
+                const age = parseInt(document.getElementById("age").value, 10);
+                let fee = 0;
+                let valid = true;
+
+                if (gender === "Nam") {
+                    if (age >= 17 && age <= 20) {
+                        fee = 100;
+                    } else if (age >= 21 && age <= 30) {
+                        fee = 120;
+                    } else if (age >= 31 && age <= 60) {
+                        fee = 200;
+                    } else if (age > 60) {
+                        fee = 250;
+                    } else {
+                        valid = false;
+                    }
+                } else if (gender === "Nữ") {
+                    if (age >= 17 && age <= 20) {
+                        fee = 90;
+                    } else if (age >= 21 && age <= 30) {
+                        fee = 120;
+                    } else if (age >= 31 && age <= 60) {
+                        fee = 140;
+                    } else if (age > 60) {
+                        fee = 150;
+                    } else {
+                        valid = false;
+                    }
+                } else if (gender === "Trẻ em") {
+                    if (age >= 0 && age < 17) {
+                        fee = 50;
+                    } else {
+                        valid = false;
+                    }
+                } else if (gender === "Người cao tuổi") {
+                    if (age > 60) {
+                        fee = 200;
+                    } else {
+                        valid = false;
+                    }
+                }
+
+                if (valid) {
+                    document.getElementById("fee").value = fee + " VND";
+                    alert("Giá tiền ước tính: " + fee + " VND");
+                } else {
+                    alert("Thông tin không hợp lệ. Vui lòng kiểm tra lại giới tính và độ tuổi.");
+                }
+            } else {
+                form.classList.add('was-validated');
+            }
+        });
+
+        // Xử lý submit form
+        document.getElementById("registrationForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (this.checkValidity()) {
+                alert("Đăng ký thành công!");
+                // Bạn có thể thêm mã để gửi dữ liệu đến máy chủ tại đây
+                this.reset();
+                this.classList.remove('was-validated');
+                document.getElementById("fee").value = "VND";
+                // Reset lại giá trị appointment
+                const now = new Date();
+                const tzOffset = now.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(now - tzOffset)).toISOString().slice(0,16);
+                document.getElementById("appointment").value = localISOTime;
+            } else {
+                this.classList.add('was-validated');
+            }
+        }, false);
+
+        // Xử lý làm mới form
+        document.querySelector(".btn-refresh").addEventListener("click", function() {
+            document.getElementById("fee").value = "VND";
+            document.getElementById("registrationForm").classList.remove('was-validated');
+            // Reset lại giá trị appointment
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(now - tzOffset)).toISOString().slice(0,16);
+            document.getElementById("appointment").value = localISOTime;
+        });
+
+        // Xử lý nút thoát
+        document.querySelector(".btn-exit").addEventListener("click", function() {
+            if (confirm("Bạn có chắc chắn muốn thoát không?")) {
+                window.close(); // Lưu ý: Một số trình duyệt có thể chặn việc đóng cửa sổ bằng JavaScript
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
