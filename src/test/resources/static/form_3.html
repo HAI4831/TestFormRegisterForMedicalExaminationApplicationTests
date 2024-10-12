@@ -128,6 +128,24 @@
 <!-- jQuery and JavaScript -->
 <script>
     $(document).ready(function() {
+        //xử lý định dạng lại khi paste vào phone
+        document.getElementById('phone').addEventListener('paste', function (e) {
+            e.preventDefault();
+            let pasteData = (e.clipboardData || window.clipboardData).getData('text');
+            pasteData = pasteData.replace(/\D/g, '').slice(0, 10); // Giới hạn tối đa 10 số
+            let formattedValue = '';
+            if (pasteData.length > 0) {
+                formattedValue = pasteData.slice(0, 4);
+            }
+            if (pasteData.length >= 5) {
+                formattedValue += ' ' + pasteData.slice(4, 7);
+            }
+            if (pasteData.length >= 8) {
+                formattedValue += ' ' + pasteData.slice(7, 10);
+            }
+            e.target.value = formattedValue;
+        });
+
         // Function to calculate fee based on gender and age
         function calculateFee(gender, age) {
             let fee = 0;
