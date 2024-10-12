@@ -10,19 +10,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import java.math.BigDecimal;
 import java.time.Duration;
 
 public class TestForm {
-
-    // Path to ChromeDriver
     private static final String CHROME_DRIVER_PATH = "D:\\download\\chromedriver-win64\\chromedriver.exe";
     private static final String FORM_URL = "http://127.0.0.1:5500/10_10/form.html";
-
-    // Default valid data for registration
     private static final String DEFAULT_NAME = "Test User";
-    //        private static final String DEFAULT_EMAIL = "validuser@gmail.com";
-//        private static final String DEFAULT_PASSWORD = "StrongPass1";
     private static final String DEFAULT_ADDRESS = "123 Đường ABC, Quận 1, TP.HCM";
     private static final String DEFAULT_PHONE = "0123456789";
     private static final String DEFAULT_CCCD = "123456789012";
@@ -30,31 +23,36 @@ public class TestForm {
     private static final String DEFAULT_AGE = "25";
     private static final String DEFAULT_DOCTOR = "Bác Sĩ 1";
     private static final String DEFAULT_APPOINTMENT = "2024-12-01T10:00:PM";
-
+    private WebElement resetButton;
     // Initialize WebDriver before each test
     private WebDriver driver;
     private WebDriverWait wait;
-
-    @BeforeMethod
+    @BeforeClass
     public void setUp() {
         System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_PATH);
         driver = new ChromeDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.manage().window().maximize();
+        // Lấy nút "Làm Mới" một lần và lưu trữ
+        if (resetButton == null) {
+            resetButton = driver.findElement(By.xpath("//button[@type='reset' and text()='Làm Mới']"));
+        }
+    }
+    @BeforeMethod
+    public void setUpMethod() {
+        resetButton.click();
+    }
+    @AfterMethod
+    public void afterMethod() {
     }
 
-    @AfterMethod
+    @AfterClass
     public void tearDown() {
         if (driver != null) {
             driver.quit();
         }
     }
-
     //1) test for Name Field
-
-    // ============================
-    // DataProviders for Name Field
-    // ============================
     @DataProvider(name = "nameData")
     public Object[][] nameTestData() {
         return new Object[][]{
@@ -66,11 +64,7 @@ public class TestForm {
                 {"أحمد", true}                // Non-Latin characters
         };
     }
-
-    // ===============================
-    // Test Method for Name Field
-    // ===============================
-    @Test(dataProvider = "nameData", description = "Test Name Field Validations")
+    @Test(dataProvider = "nameData", description = "Test Name Field Validations",threadPoolSize = 5, invocationCount = 10)
     public void testNameField(String name, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
         data.setName(name);
@@ -79,23 +73,14 @@ public class TestForm {
     }
 
     //2) test for address field
-
-    // =================================
-    // DataProviders for Address Field
-    // =================================
     @DataProvider(name = "addressData")
     public Object[][] addressData() {
         return new Object[][]{
                 {"123 Đường ABC, Quận 1, TP.HCM", true},          // TC5: Valid
                 {"1234", false},                                 // TC6: Too Short
-//                {generateString('A', 101), false},               // TC7: Too Long
                 {"", false}                                      // TC8: Required
         };
     }
-
-    // ===============================
-    // Test Method for Address Field
-    // ===============================
     @Test(dataProvider = "addressData", description = "Test Address Field Validations")
     public void testAddressField(String address, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -105,10 +90,6 @@ public class TestForm {
     }
 
     // 3) test for phone field
-
-    // ================================
-    // DataProviders for Phone Field
-    // ================================
     @DataProvider(name = "phoneData")
     public Object[][] phoneData() {
         return new Object[][]{
@@ -120,10 +101,6 @@ public class TestForm {
                 {"", false}                                // TC14: Required
         };
     }
-
-    // ===============================
-    // Test Method for Phone Field
-    // ===============================
     @Test(dataProvider = "phoneData", description = "Test Phone Number Field Validations")
     public void testPhoneField(String phone, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -133,10 +110,6 @@ public class TestForm {
     }
 
     //4)test for cccd field
-
-    // =================================
-    // DataProviders for CCCD Field
-    // =================================
     @DataProvider(name = "cccdData")
     public Object[][] cccdData() {
         return new Object[][]{
@@ -147,10 +120,6 @@ public class TestForm {
                 {"", false}                                  // TC19: Required
         };
     }
-
-    // ===============================
-    // Test Method for CCCD Field
-    // ===============================
     @Test(dataProvider = "cccdData", description = "Test CCCD Number Field Validations")
     public void testCccdField(String cccd, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -160,10 +129,6 @@ public class TestForm {
     }
 
     //5)test for gender field
-
-    // =================================
-    // DataProviders for Gender Field
-    // =================================
     @DataProvider(name = "genderData")
     public Object[][] genderData() {
         return new Object[][]{
@@ -175,9 +140,6 @@ public class TestForm {
         };
     }
 
-    // ===============================
-    // Test Method for Gender Field
-    // ===============================
     @Test(dataProvider = "genderData", description = "Test Gender Field Validations")
     public void testGenderField(String gender, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -187,10 +149,6 @@ public class TestForm {
     }
 
     //6)test for age field
-
-    // =================================
-    // DataProviders for Age Field
-    // =================================
     @DataProvider(name = "ageData")
     public Object[][] ageData() {
         return new Object[][]{
@@ -203,10 +161,6 @@ public class TestForm {
                 {"", false}         // TC31: Required
         };
     }
-
-    // ===============================
-    // Test Method for Age Field
-    // ===============================
     @Test(dataProvider = "ageData", description = "Test Age Field Validations")
     public void testAgeField(String age, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -217,10 +171,6 @@ public class TestForm {
     }
 
     //7) test for doctor field
-
-    // ====================================
-    // DataProviders for Doctor Field
-    // ====================================
     @DataProvider(name = "doctorData")
     public Object[][] doctorData() {
         return new Object[][]{
@@ -230,10 +180,6 @@ public class TestForm {
                 {null, false}         // TC35: No selection
         };
     }
-
-    // ===============================
-    // Test Method for Doctor Field
-    // ===============================
     @Test(dataProvider = "doctorData", description = "Test Select Doctor Field Validations")
     public void testDoctorField(String doctor, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -243,23 +189,15 @@ public class TestForm {
     }
 
     //8) test for appointment field
-
-    // ====================================
-    // DataProviders for Appointment Field
-    // ====================================
     @DataProvider(name = "appointmentData")
     public Object[][] appointmentData() {
         return new Object[][]{
-                {"2024-12-01T10:00", true},      // TC36: Valid
+                {"2024-12-01T10:00:PM", true},      // TC36: Valid
                 {"invalid-date", false},          // TC37: Invalid format
                 {"2020-01-01T10:00", false},      // TC38: Past Date (Assuming past dates are invalid)
                 {"", false}                        // TC39: Required
         };
     }
-
-    // ===============================
-    // Test Method for Appointment Field
-    // ===============================
     @Test(dataProvider = "appointmentData", description = "Test Appointment Time Field Validations")
     public void testAppointmentField(String appointment, boolean expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -269,10 +207,6 @@ public class TestForm {
     }
 
     //9) test for fee field
-
-    // =================================
-    // DataProviders for Fee Field
-    // =================================
     @DataProvider(name = "feeData")
     public Object[][] feeData() {
         return new Object[][]{
@@ -280,10 +214,6 @@ public class TestForm {
                 {"Calculate fee", "Calculated Amount"}            // TC41: Calculate fee based on inputs
         };
     }
-
-    // ===============================
-    // Test Method for Fee Field
-    // ===============================
     @Test(dataProvider = "feeData", description = "Test Fee Field Validations")
     public void testFeeField(String action, String expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -298,10 +228,6 @@ public class TestForm {
     }
 
     //10)test for Buttons Functionality
-
-    // =================================
-    // DataProviders for Buttons Functionality
-    // =================================
     @DataProvider(name = "buttonsData")
     public Object[][] buttonsData() {
         return new Object[][]{
@@ -313,10 +239,6 @@ public class TestForm {
                 {"Thoát", "exit", "Form is closed or navigates away"}                    // TC47
         };
     }
-
-    // ===============================
-    // Test Method for Buttons Functionality
-    // ===============================
     @Test(dataProvider = "buttonsData", description = "Test Buttons Functionality")
     public void testButtonsFunctionality(String button, String scenario, String expectedOutcome) {
         RegistrationData data = new RegistrationData().getDefaultInstance();
@@ -337,17 +259,6 @@ public class TestForm {
         performActionAndVerify(data, button, scenario, expectedOutcome);
         Assert.assertTrue(true, expectedOutcome); // Simplified assertion for demonstration
     }
-
-    // ====================================
-    // Helper Methods for Fee Field
-    // ====================================
-
-    /**
-     * Verifies that the "Giá Tiền" field displays "VND" upon form load.
-     *
-     * @param data The registration data.
-     * @return True if "Giá Tiền" displays "VND", False otherwise.
-     */
     private boolean verifyFeeOnLoad(RegistrationData data) {
         try {
             // Navigate to registration page
@@ -362,13 +273,6 @@ public class TestForm {
             return false;
         }
     }
-
-    /**
-     * Calculates the fee based on inputs and verifies the "Giá Tiền" field updates correctly.
-     *
-     * @param data The registration data.
-     * @return True if fee is calculated and displayed correctly, False otherwise.
-     */
     private boolean calculateAndVerifyFee(RegistrationData data) {
         try {
             // Navigate to registration page
@@ -393,19 +297,6 @@ public class TestForm {
             return false;
         }
     }
-
-    // ====================================
-    // Helper Method for Buttons Functionality
-    // ====================================
-
-    /**
-     * Performs the specified button action and verifies the expected outcome.
-     *
-     * @param data            The registration data.
-     * @param button          The button to click.
-     * @param scenario        The scenario type (e.g., "valid", "invalid", "reset", "exit").
-     * @param expectedOutcome The expected outcome description.
-     */
     private void performActionAndVerify(RegistrationData data, String button, String scenario, String expectedOutcome) {
         try {
             // Navigate to registration page
@@ -480,16 +371,6 @@ public class TestForm {
             Assert.fail("Button action failed: " + e.getMessage());
         }
     }
-
-    // ====================================
-    // Helper Method to Fill Registration Form
-    // ====================================
-
-    /**
-     * Fills out the registration form with the provided data.
-     *
-     * @param data The registration data.
-     */
     private void fillIntoForm(RegistrationData data) {
         // Fill in Name
         WebElement nameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("name")));
@@ -513,15 +394,26 @@ public class TestForm {
 
         // Select Gender
         if (data.getGender() != null) {
-            String gender = data.getGender(); // Assuming male is the other option
-//            String gender = data.getGender().equalsIgnoreCase("Nữ") ? "female" : "male"; // Assuming male is the other option
+            String gender = data.getGender();
+
+            if (gender.equalsIgnoreCase("Nữ")) {
+                gender = "female";
+            } else if (gender.equalsIgnoreCase("Nam")) {
+                gender = "male";
+            } else if (gender.equalsIgnoreCase("Trẻ em")) {
+                gender = "child";
+            } else if (gender.equalsIgnoreCase("Người cao tuổi")) {
+                gender = "elder";
+            }
+
             WebElement genderRadio = wait.until(ExpectedConditions.elementToBeClickable(By.id(gender)));
             genderRadio.click();
         }
+
         // Fill in Age
         WebElement ageField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("age")));
         ageField.clear();
-        ageField.sendKeys(data.getAge());
+        ageField.sendKeys(data.getAge().toString());
 
         // Select Doctor
         if (data.getDoctor() != null) {
@@ -535,24 +427,7 @@ public class TestForm {
         WebElement appointmentField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("appointment")));
         appointmentField.clear();
         appointmentField.sendKeys(data.getAppointment());
-
-        // Fill in Appointment Time
-//        WebElement feeField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("fee")));
-//        feeField.clear();
-//        feeField.sendKeys(data.getFee().toString());
     }
-    // ====================================
-    // Helper Method to Register User
-    // ====================================
-
-    /**
-     * Registers a user with the provided data. Depending on the field being tested,
-     * it may input invalid data for that field while keeping other fields valid.
-     *
-     * @param data        The registration data.
-     * @param fieldToTest The specific field being tested (e.g., "name", "address").
-     * @return True if registration succeeds as expected, False otherwise.
-     */
     private boolean registerForMedicalExamination(RegistrationData data, String fieldToTest) {
         try {
             // Navigate to registration page
@@ -571,10 +446,6 @@ public class TestForm {
             return false;
         }
     }
-
-    // ====================================
-    // Helper Method to Determine Validity
-    // ====================================
     public boolean isFormValid() {
         // Check if an alert is present
         try {
@@ -592,18 +463,6 @@ public class TestForm {
         // If no errors found for any fields, return true
         return false;
     }
-
-
-    // ====================================
-    // Helper Method to Get Error Selector
-    // ====================================
-
-    /**
-     * Returns the CSS selector for the error message related to the specific field.
-     *
-     * @param field The field being tested.
-     * @return The CSS selector for the error message.
-     */
     private String getErrorSelector(String field) {
         switch (field) {
             case "name":
@@ -626,18 +485,6 @@ public class TestForm {
                 return "div.alert-danger";
         }
     }
-
-    // ====================================
-    // Helper Method to Generate Repeated Characters
-    // ====================================
-
-    /**
-     * Generates a string composed of a repeated character.
-     *
-     * @param c     The character to repeat.
-     * @param count The number of times to repeat.
-     * @return The generated string.
-     */
     private String generateString(char c, int count) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < count; i++) {
@@ -645,16 +492,6 @@ public class TestForm {
         }
         return sb.toString();
     }
-
-    // ====================================
-    // Helper Method to Check If Fields Are Reset
-    // ====================================
-
-    /**
-     * Verifies that all input fields are reset to their default values.
-     *
-     * @return True if all fields are reset correctly, False otherwise.
-     */
     private boolean areFieldsReset() {
         try {
             // Verify each field is reset to its default value or empty
@@ -687,16 +524,6 @@ public class TestForm {
             return false;
         }
     }
-
-    // ====================================
-    // Helper Method to Check If Form Is Submitted Successfully
-    // ====================================
-
-    /**
-     * Verifies that the form is submitted successfully and navigates to the home page.
-     *
-     * @return True if submission is successful, False otherwise.
-     */
     private boolean isFormSubmittedSuccessfully() {
         try {
             wait.until(ExpectedConditions.urlContains("http://localhost:8000/home"));
@@ -706,15 +533,6 @@ public class TestForm {
             return false;
         }
     }
-
-    // ====================================
-    // Inner Class to Hold Registration Data
-    // ====================================
-
-    /**
-     * A helper class to encapsulate all registration form data.
-     */
-
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -743,80 +561,3 @@ public class TestForm {
         }
     }
 }
-
-
-
-//_______________________
-
-// Depending on expected outcome, verify success or error
-//            if (isFieldValid(fieldToTest, data)) {
-// Expecting success
-// Now wait for the alert
-//                wait.until(ExpectedConditions.alertIsPresent());
-//                // Switch to the alert and verify its text
-//                Alert alert = driver.switchTo().alert();
-//                String alertMessage = alert.getText();
-//                // Check if the alert message is as expected
-//                if (alertMessage.equals("Giá tiền ước tính: " + fee + " VND")) {
-//                    alert.accept(); // Dismiss the alert
-//                    return true;
-//                }
-//                return true;
-//            } else {
-//                 Expecting failure, check for error message related to the field
-//                String errorSelector = getErrorSelector(fieldToTest);
-//                wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(errorSelector)));
-//                return false;
-//            }
-
-
-
-
-///**
-// * Determines if the input for the specific field is valid based on expected outcomes.
-// *
-// * @param field The field being tested.
-// * @param data  The registration data.
-// * @return True if the input is valid, False otherwise.
-// */
-//private boolean isFieldValid(String field, RegistrationData data) {
-//    switch (field) {
-//        case "name":
-//            return data.getName() != null && data.getName().length() >= 3 && data.getName().length() <= 50;
-//        case "address":
-//            return data.getAddress() != null && data.getAddress().length() >= 5 && data.getAddress().length() <= 100;
-//        case "phone":
-//            return data.getPhone() != null && data.getPhone().matches("\\d{10,15}");
-//        case "cccd":
-//            return data.getCccd() != null && data.getCccd().matches("\\d{12}");
-//        case "gender":
-//            return data.getGender() != null && (
-//                    data.getGender().equals("Nam") ||
-//                            data.getGender().equals("Nữ") ||
-//                            data.getGender().equals("Trẻ em") ||
-//                            data.getGender().equals("Người cao tuổi")
-//            );
-//        case "age":
-//            if (data.getAge() == null) return false;
-//            try {
-//                int age = Integer.parseInt(data.getAge());
-//                return age >= 0 && age <= 120;
-//            } catch (NumberFormatException e) {
-//                return false;
-//            }
-//        case "doctor":
-//            return data.getDoctor() != null && (
-//                    data.getDoctor().equals("Bác Sĩ 1") ||
-//                            data.getDoctor().equals("Bác Sĩ 2") ||
-//                            data.getDoctor().equals("Bác Sĩ 3")
-//            );
-//        case "appointment":
-//            // Simple regex for datetime format YYYY-MM-DDTHH:MM
-//            if (data.getAppointment() == null) return false;
-//            if (!data.getAppointment().matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}")) return false;
-//            // Additional check for past dates can be implemented if necessary
-//            return true;
-//        default:
-//            return false;
-//    }
-//}
