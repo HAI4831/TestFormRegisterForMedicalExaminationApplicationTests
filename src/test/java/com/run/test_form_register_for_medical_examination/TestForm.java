@@ -14,7 +14,7 @@ import java.time.Duration;
 
 public class TestForm {
     private static final String CHROME_DRIVER_PATH = "D:\\download\\chromedriver-win64\\chromedriver.exe";
-    private static final String FORM_URL = "http://127.0.0.1:5500/10_10/form.html";
+    private static final String FORM_URL = "http://127.0.0.1:5500/form.html";
     private static final String DEFAULT_NAME = "Test User";
     private static final String DEFAULT_ADDRESS = "123 Đường ABC, Quận 1, TP.HCM";
     private static final String DEFAULT_PHONE = "0123456789";
@@ -23,10 +23,6 @@ public class TestForm {
     private static final String DEFAULT_AGE = "25";
     private static final String DEFAULT_DOCTOR = "Bác Sĩ 1";
     private static final String DEFAULT_APPOINTMENT = "2024-12-01T10:00:PM";
-    private WebElement purchaseButton;
-    private WebElement resetButton;
-    private WebElement registerButton;
-    private WebElement exitButton;
     // Initialize WebDriver before each test
     private WebDriver driver;
     private WebDriverWait wait;
@@ -37,23 +33,12 @@ public class TestForm {
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.manage().window().maximize();
         driver.get(FORM_URL);
-        // Lấy nút "Làm Mới" một lần và lưu trữ
-        if (purchaseButton == null) {
-            purchaseButton = driver.findElement(By.xpath("//button[@type='button' and text()='Tính Tiền']")); // Chỉnh sửa XPath nếu cần
-        }
-        if (resetButton == null) {
-            resetButton = driver.findElement(By.xpath("//button[@type='reset' and text()='Làm Mới']"));
-        }
-        if (registerButton == null) {
-            registerButton = driver.findElement(By.xpath("//button[@type='submit' nd text()='Đăng Ký']")); // Chỉnh sửa XPath nếu cần
-        }
-        if (exitButton == null) {
-            exitButton = driver.findElement(By.xpath("//button[@type='button' nd text()='Thoát']")); // Chỉnh sửa XPath nếu cần
-        }
     }
     @BeforeMethod
     public void setUpMethod() {
-        resetButton.click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='reset' and text()='Làm Mới']")));
+        button.click();
     }
     @AfterMethod
     public void afterMethod() {
@@ -124,10 +109,10 @@ public class TestForm {
                 {"appointment", "2020-01-01T10:00", false},      // Past Date
                 {"appointment", "", false},                        // Required
                 // Trường hợp kiểm tra cho các nút
-                {"buttons", "charge", "Giá tiền ước tính: % VND", true}, // Nhấn nút submit thành công
-                {"buttons", "refresh", "invalid", false}, // Nhấn nút không hợp lệ
-                {"buttons", "register", "Đăng ký thành công!", true},
-                {"buttons", "cancel", "Bạn có chắc chắn muốn thoát không?", true},
+                {"buttons", "charge",}, // Nhấn nút submit thành công
+                {"buttons", "refresh", true}, // Nhấn nút không hợp lệ
+                {"buttons", "register", true},
+                {"buttons", "cancel", true},
         };
     }
 
@@ -169,39 +154,54 @@ public class TestForm {
                 regData.setAppointment((String) inputValue);
                 break;
             case "buttons":
-                String buttonType = (String) inputValue;
-                WebElement buttonToClick;
-
-                switch (buttonType) {
-                    case "charge":
-                        buttonToClick = purchaseButton;
-                        break;
-                    case "refresh":
-                        buttonToClick = resetButton;
-                        break;
-                    case "register":
-                        buttonToClick = registerButton;
-                        break;
-                    case "exit":
-                        buttonToClick = exitButton;
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Nút không hợp lệ: " + buttonType);
-                }
-
-                buttonToClick.click();
-
-                // Lấy alert
-                String alertMessage = wait.until(ExpectedConditions.alertIsPresent()).getText();
-                driver.switchTo().alert().accept(); // Đóng alert
-
                 // So sánh thông báo alert với kết quả mong đợi
-                Assert.assertEquals(alertMessage, expectedOutcome, buttonType + " không hợp lệ.");
+                Assert.assertEquals(handleButtonClick(inputValue), expectedOutcome);
                 return; // Thoát khỏi phương thức sau khi xử lý nút
             default:
                 throw new IllegalArgumentException("Loại trường không hợp lệ: " + fieldType);
         }
+
+        // So sánh kết quả mong đợi với kết quả trả về từ phương thức đăng ký
+        Assert.assertEquals(registerForMedicalExamination(regData), expectedOutcome);
     }
+
+    private boolean handleButtonClick(Object inputValue) {
+        String buttonType = (String) inputValue;
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        String message = ""; // Khởi tạo message
+        WebElement button;
+
+        // Gán giá trị message và nút tương ứng
+        switch (buttonType) {
+            case "charge" -> {
+                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='button' and text()='Tính Tiền']")));
+                message = "Giá tiền ước tính: % VND";
+            }
+            case "refresh" -> {
+                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='reset' and text()='Làm Mới']")));
+                message = "invalid";
+            }
+            case "register" -> {
+                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='submit' and text()='Đăng Ký']")));
+                message = "Đăng ký thành công!";
+            }
+            case "exit" -> {
+                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='button' and text()='Thoát']")));
+                message = "Bạn có chắc chắn muốn thoát không?";
+            }
+            default -> throw new IllegalArgumentException("Nút không hợp lệ: " + buttonType);
+        }
+
+        // Nhấn nút
+        button.click();
+
+        // Lấy alert và so sánh với message đã gán
+        String alertMessage = wait.until(ExpectedConditions.alertIsPresent()).getText();
+        driver.switchTo().alert().accept(); // Đóng alert
+        return alertMessage.equals(message);
+    }
+
+
 
     private void fillIntoForm(RegistrationData data) {
         // Fill in Name
@@ -260,9 +260,12 @@ public class TestForm {
         appointmentField.clear();
         appointmentField.sendKeys(data.getAppointment());
     }
-    private boolean registerForMedicalExamination(RegistrationData data, String fieldToTest) {
+    private boolean registerForMedicalExamination(RegistrationData data) {
         try {
-            resetButton.click();
+            //reset click
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='reset' and text()='Làm Mới']")));
+            button.click();
 
             // Fill in all fields
             fillIntoForm(data);
