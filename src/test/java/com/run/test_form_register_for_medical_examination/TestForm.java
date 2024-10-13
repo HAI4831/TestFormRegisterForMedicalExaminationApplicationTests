@@ -132,7 +132,7 @@ public class TestForm {
     }
 
 
-    @Test(dataProvider = "fieldValidationData", description = "Test Field Validations"
+    @Test(priority = 1,dataProvider = "fieldValidationData", description = "Test Field Validations"
 //            , threadPoolSize = 5, invocationCount = 10
     )
     public void testFieldValidation(Object... data) {

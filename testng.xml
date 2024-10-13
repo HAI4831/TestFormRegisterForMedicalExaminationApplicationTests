@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite">
+    <test verbose="2" preserve-order="true" name="D:/codevs/agi/web/springboot/iot_folder/test_form_register_for_medical_examination">
+        <classes>
+            <class name="com.run.test_form_register_for_medical_examination.TestForm">
+                <methods>
+                    <include name="testFieldValidation"/>
+                </methods>
+            </class>
+            <class name="com.run.test_form_register_for_medical_examination.TestFormRegisterForMedicalExaminationApplicationTests">
+                <methods>
+                    <include name="contextLoads"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>
