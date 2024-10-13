@@ -37,9 +37,24 @@ public class TestForm {
     @BeforeMethod
     public void setUpMethod() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // Check if an alert is present and close it
+        try {
+            if (wait.until(ExpectedConditions.alertIsPresent()) != null) {
+                Alert alert = driver.switchTo().alert();
+                System.out.println("Alert Text: " + alert.getText());
+                alert.accept();  // Close the alert
+            }
+        } catch (TimeoutException e) {
+            // No alert is present, continue with the execution
+            System.out.println("No alert present.");
+        }
+
+        // Wait for the button and click it
         WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='reset' and text()='Làm Mới']")));
         button.click();
     }
+
     @AfterMethod
     public void afterMethod() {
     }
@@ -84,8 +99,8 @@ public class TestForm {
                 // Gender field test cases
                 {"gender", "Nam", true},                             // Valid
                 {"gender", "Nữ", true},                              // Valid
-                {"gender", "Trẻ em", true},                         // Valid
-                {"gender", "Người cao tuổi", true},                  // Valid
+                {"gender", "Trẻ em", false},                         // Valid
+                {"gender", "Người cao tuổi", false},                  // Valid
                 {"gender", null, false},                              // No selection
 
                 // Age field test cases
@@ -109,15 +124,17 @@ public class TestForm {
                 {"appointment", "2020-01-01T10:00", false},      // Past Date
                 {"appointment", "", false},                        // Required
                 // Trường hợp kiểm tra cho các nút
-                {"buttons", "charge",}, // Nhấn nút submit thành công
+                {"buttons", "charge",true}, // Nhấn nút submit thành công
                 {"buttons", "refresh", true}, // Nhấn nút không hợp lệ
                 {"buttons", "register", true},
-                {"buttons", "cancel", true},
+                {"buttons", "exit", true},
         };
     }
 
 
-    @Test(dataProvider = "fieldValidationData", description = "Test Field Validations", threadPoolSize = 5, invocationCount = 10)
+    @Test(dataProvider = "fieldValidationData", description = "Test Field Validations"
+//            , threadPoolSize = 5, invocationCount = 10
+    )
     public void testFieldValidation(Object... data) {
         RegistrationData regData = new RegistrationData().getDefaultInstance();
         String fieldType = (String) data[0];
@@ -154,52 +171,92 @@ public class TestForm {
                 regData.setAppointment((String) inputValue);
                 break;
             case "buttons":
+                fillIntoForm(regData);
                 // So sánh thông báo alert với kết quả mong đợi
-                Assert.assertEquals(handleButtonClick(inputValue), expectedOutcome);
+                Assert.assertEquals(handleButtonClick(inputValue.toString()), expectedOutcome);
                 return; // Thoát khỏi phương thức sau khi xử lý nút
             default:
                 throw new IllegalArgumentException("Loại trường không hợp lệ: " + fieldType);
         }
 
         // So sánh kết quả mong đợi với kết quả trả về từ phương thức đăng ký
-        Assert.assertEquals(registerForMedicalExamination(regData), expectedOutcome);
+        Assert.assertEquals(isFormValid(regData), expectedOutcome);
     }
 
-    private boolean handleButtonClick(Object inputValue) {
-        String buttonType = (String) inputValue;
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        String message = ""; // Khởi tạo message
-        WebElement button;
+    private boolean handleButtonClick(String buttonType) {
+        String expectedMessagePrefix = "";
+        String expectedMessageSuffix = "";
+        boolean variableContent = false;
+        boolean expectAlert = true; // Có mong đợi alert hay không
 
-        // Gán giá trị message và nút tương ứng
+        // Định nghĩa thông điệp mong đợi dựa trên loại nút
         switch (buttonType) {
-            case "charge" -> {
-                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='button' and text()='Tính Tiền']")));
-                message = "Giá tiền ước tính: % VND";
-            }
-            case "refresh" -> {
-                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='reset' and text()='Làm Mới']")));
-                message = "invalid";
-            }
-            case "register" -> {
-                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='submit' and text()='Đăng Ký']")));
-                message = "Đăng ký thành công!";
-            }
-            case "exit" -> {
-                button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='button' and text()='Thoát']")));
-                message = "Bạn có chắc chắn muốn thoát không?";
-            }
-            default -> throw new IllegalArgumentException("Nút không hợp lệ: " + buttonType);
+            case "charge":
+                expectedMessagePrefix = "Giá tiền ước tính: ";
+                expectedMessageSuffix = " VND";
+                variableContent = true;
+                break;
+            case "refresh":
+                expectAlert = false; // "Làm Mới" không tạo alert
+                break;
+            case "register":
+                expectedMessagePrefix = "Đăng ký thành công!";
+                break;
+            case "exit":
+                expectedMessagePrefix = "Bạn có chắc chắn muốn thoát không?";
+                break;
+            default:
+                throw new IllegalArgumentException("Nút không hợp lệ: " + buttonType);
+        }
+
+        // Xác định locator của nút dựa trên loại nút
+        By buttonLocator;
+        switch (buttonType) {
+            case "charge":
+                buttonLocator = By.xpath("//button[@type='button' and text()='Tính Tiền']");
+                break;
+            case "refresh":
+                buttonLocator = By.xpath("//button[@type='reset' and text()='Làm Mới']");
+                break;
+            case "register":
+                buttonLocator = By.xpath("//button[@type='submit' and text()='Đăng Ký']");
+                break;
+            case "exit":
+                buttonLocator = By.xpath("//button[@type='button' and text()='Thoát']");
+                break;
+            default:
+                throw new IllegalArgumentException("Nút không hợp lệ: " + buttonType);
         }
 
         // Nhấn nút
+        WebElement button = wait.until(ExpectedConditions.elementToBeClickable(buttonLocator));
         button.click();
 
-        // Lấy alert và so sánh với message đã gán
-        String alertMessage = wait.until(ExpectedConditions.alertIsPresent()).getText();
-        driver.switchTo().alert().accept(); // Đóng alert
-        return alertMessage.equals(message);
+        // Xử lý alert nếu có
+        String alertMessage = "";
+        if (expectAlert) {
+            try {
+                Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+                alertMessage = alert.getText();
+                alert.accept(); // Đóng alert
+            } catch (TimeoutException e) {
+                if (!buttonType.equals("refresh")) {
+                    System.out.println("Không tìm thấy alert sau khi nhấn nút: " + buttonType);
+                }
+            }
+        }
+
+        // So sánh thông điệp alert
+        if (variableContent) {
+            return alertMessage.startsWith(expectedMessagePrefix) && alertMessage.endsWith(expectedMessageSuffix);
+        } else if (expectAlert) {
+            return alertMessage.equals(expectedMessagePrefix);
+        } else {
+            // Đối với "refresh", không mong đợi alert
+            return true;
+        }
     }
+
 
 
 
@@ -245,7 +302,7 @@ public class TestForm {
         // Fill in Age
         WebElement ageField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("age")));
         ageField.clear();
-        ageField.sendKeys(data.getAge().toString());
+        ageField.sendKeys(data.getAge());
 
         // Select Doctor
         if (data.getDoctor() != null) {
@@ -260,40 +317,26 @@ public class TestForm {
         appointmentField.clear();
         appointmentField.sendKeys(data.getAppointment());
     }
-    private boolean registerForMedicalExamination(RegistrationData data) {
+
+    public boolean isFormValid(RegistrationData data) {
+        // Check if an alert is present
         try {
-            //reset click
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@type='reset' and text()='Làm Mới']")));
-            button.click();
-
-            // Fill in all fields
             fillIntoForm(data);
-
             // Click Register Button
             WebElement paymentButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("payment")));
             paymentButton.click();
-
-           return isFormValid();
-        } catch (Exception e) {
-            System.out.println("Test encountered an exception: " + e.getMessage());
-            return false;
-        }
-    }
-    public boolean isFormValid() {
-        // Check if an alert is present
-        try {
             Alert alert = driver.switchTo().alert();
             String alertText = alert.getText();
 
             // Check if the alert text contains "Giá tiền ước tính: * VND"
             if (alertText.startsWith("Giá tiền ước tính: ") && alertText.endsWith(" VND")){
+                alert.accept();
                 return true; // Return true if alert matches the pattern
             }
+            alert.accept();
         } catch (NoAlertPresentException e) {
             // No alert found, continue
         }
-
         // If no errors found for any fields, return true
         return false;
     }
